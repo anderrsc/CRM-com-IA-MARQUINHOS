@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8787';
+﻿const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -21,6 +21,7 @@ export interface ApiStatus {
   ok: boolean;
   whatsappConfigured: boolean;
   openAiConfigured: boolean;
+  supabaseConfigured: boolean;
 }
 
 export interface WhatsAppInboxMessage {
@@ -35,6 +36,14 @@ export interface WhatsAppInboxMessage {
 
 export const api = {
   health: () => request<ApiStatus>('/api/health'),
+  listData: <T>(collection: string) => request<T[]>(`/api/data/${collection}`),
+  saveData: <T extends { id: string }>(collection: string, item: T) => request<T>(`/api/data/${collection}/${encodeURIComponent(item.id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(item),
+  }),
+  deleteData: (collection: string, id: string) => request<{ ok: boolean }>(`/api/data/${collection}/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  }),
   analyze: <T>(message: string) => request<T>('/api/ai/analyze', {
     method: 'POST',
     body: JSON.stringify({ message }),
@@ -48,3 +57,4 @@ export const api = {
     body: JSON.stringify({ to, body }),
   }),
 };
+

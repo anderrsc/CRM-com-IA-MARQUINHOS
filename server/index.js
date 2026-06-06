@@ -4,6 +4,7 @@ import express from 'express';
 import { analyzeCustomerMessage } from './services/openai.js';
 import { extractWebhookMessages, sendWhatsAppText } from './services/whatsapp.js';
 import { addInboxMessage, readInbox, updateInboxMessage } from './store.js';
+import { supabaseConfigured } from './supabase.js';
 
 const app = express();
 const port = Number(process.env.API_PORT || 8787);
@@ -16,6 +17,7 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     whatsappConfigured: Boolean(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
     openAiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    supabaseConfigured,
   });
 });
 
@@ -58,6 +60,64 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
 
 app.get('/api/whatsapp/messages', async (_req, res) => {
   res.json(await readInbox());
+});
+
+app.get('/api/data/:collection', async (req, res) => {
+  try {
+    if (!supabaseConfigured) {
+      res.json([]);
+      return;
+    }
+
+    const { supabaseRequest } = await import('./supabase.js');
+    const rows = await supabaseRequest(
+      `app_records?collection=eq.${encodeURIComponent(req.params.collection)}&select=id,payload,updated_at&order=updated_at.desc`
+    );
+    res.json(rows.map((row) => row.payload));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/data/:collection/:id', async (req, res) => {
+  try {
+    if (!supabaseConfigured) {
+      res.json(req.body);
+      return;
+    }
+
+    const { supabaseRequest } = await import('./supabase.js');
+    const [saved] = await supabaseRequest('app_records?on_conflict=collection,id', {
+      method: 'POST',
+      headers: {
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: JSON.stringify({
+        collection: req.params.collection,
+        id: req.params.id,
+        payload: req.body,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    res.json(saved.payload);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/data/:collection/:id', async (req, res) => {
+  try {
+    if (supabaseConfigured) {
+      const { supabaseRequest } = await import('./supabase.js');
+      await supabaseRequest(
+        `app_records?collection=eq.${encodeURIComponent(req.params.collection)}&id=eq.${encodeURIComponent(req.params.id)}`,
+        { method: 'DELETE', headers: { Prefer: 'return=minimal' } }
+      );
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/messages/:id/read', async (req, res) => {

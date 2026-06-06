@@ -59,9 +59,15 @@ const pageConfig: Record<string, { title: string; subtitle?: string }> = {
 };
 
 const App: React.FC = () => {
-  const { isAuthenticated, sidebarOpen, toggleSidebar } = useStore();
+  const { isAuthenticated, sidebarOpen, toggleSidebar, hydrateFromDatabase, databaseHydrated } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const checkedInitialViewport = useRef(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !databaseHydrated) {
+      hydrateFromDatabase();
+    }
+  }, [isAuthenticated, databaseHydrated, hydrateFromDatabase]);
 
   useEffect(() => {
     if (!isAuthenticated || checkedInitialViewport.current) return;
