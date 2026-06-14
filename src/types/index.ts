@@ -52,7 +52,7 @@ export interface Lead {
   updatedAt: Date;
 }
 
-export interface Attachment {
+export interface Attachment {h
   id: string;
   type: 'image' | 'audio' | 'document' | 'video';
   url: string;
@@ -122,6 +122,7 @@ export interface MeasurementSheet {
   visitId: string;
   leadId: string;
   leadName: string;
+    medidor?: string;
   service: string;
   lines: MeasurementLine[];
   generalNotes: string;
