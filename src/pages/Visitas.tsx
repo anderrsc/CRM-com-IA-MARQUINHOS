@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
+import {h
   Printer,
   MapPin,
   Phone,
@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 import { buildVisitText, downloadTextFile, openMap, openWhatsApp } from '../utils/actions';
 import { v4 as uuidv4 } from 'uuid';
 
-const MEDIDORES = ['Marquinhos', 'Miguel', 'Maicon', 'Claiton', 'HÃ©rcules'];
+const MEDIDORES = ['Marquinhos', 'Miguel', 'Maicon', 'Claiton', 'Hércules'];
 
 export const Visitas: React.FC = () => {
   const { visits, measurementSheets, saveMeasurementSheet } = useStore();
