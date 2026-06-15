@@ -95,7 +95,7 @@ export const Visitas: React.FC = () => {
   const saveMeasurements = () => {
     if (!measurementSheet) return;
     saveMeasurementSheet({ ...measurementSheet, updatedAt: new Date() });
-    toast.success('Folha de mediÃ§Ãµes salva');
+    toast.success('Folha de medições salva');
   };
 
   const handlePrint = () => {
@@ -106,13 +106,13 @@ export const Visitas: React.FC = () => {
   const handleWhatsApp = () => {
     if (!selectedVisit) return;
     const ok = openWhatsApp(selectedVisit.phone, buildVisitText(selectedVisit));
-    if (!ok) toast.error('Telefone invÃ¡lido para WhatsApp');
+    if (!ok) toast.error('Telefone inválido para WhatsApp');
   };
 
   const handleOpenMap = () => {
     if (!selectedVisit) return;
     const ok = openMap(selectedVisit.address);
-    if (!ok) toast.error('EndereÃ§o nÃ£o informado');
+    if (!ok) toast.error('Endereço não informado');
   };
 
   const handleDownload = () => {
@@ -221,7 +221,7 @@ export const Visitas: React.FC = () => {
             {measurementSheet && (
               <Card>
                 <CardHeader
-                  title="Folha de MediÃ§Ãµes"
+                  title="Folha de Medições"
                   subtitle="Preencha no local da visita e salve no sistema"
                   icon={<FileText size={20} />}
                   action={
@@ -263,7 +263,7 @@ export const Visitas: React.FC = () => {
                     >
                       <div className="col-span-12 sm:col-span-3">
                         <Input
-                          placeholder="Ambiente / peÃ§a"
+                          placeholder="Ambiente / peça"
                           value={line.location}
                           onChange={(e) => updateMeasurementLine(line.id, 'location', e.target.value)}
                         />
@@ -309,7 +309,7 @@ export const Visitas: React.FC = () => {
                     </div>
                   ))}
                   <TextArea
-                    label="ObservaÃ§Ãµes gerais"
+                    label="Observações gerais"
                     value={measurementSheet.generalNotes}
                     onChange={(e) =>
                       setMeasurementSheet({
@@ -335,7 +335,7 @@ export const Visitas: React.FC = () => {
                     </div>
                     <div>
                       <h1 className="text-xl font-bold text-gray-900">Marquinhos OS</h1>
-                      <p className="text-sm text-gray-500">Esquadrias â¢ AlumÃ­nio â¢ Vidros â¢ Calhas</p>
+                      <p className="text-sm text-gray-500">Esquadrias â¢ Alumínio â¢ Vidros â¢ Calhas</p>
                     </div>
                   </div>
                   <div className="text-right">
