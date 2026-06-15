@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  Printer, 
-  MapPin, 
-  Phone, 
+import {
+  Printer,
+  MapPin,
+  Phone,
   Calendar,
   Clock,
   User,
@@ -10,12 +10,12 @@ import {
   Download,
   MessageSquare,
   Navigation,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { Input, TextArea } from '../components/ui/Input';
+import { Input, TextArea, Select } from '../components/ui/Input';
 import { useStore } from '../store/useStore';
 import { MeasurementSheet, Visit } from '../types';
 import { format } from 'date-fns';
@@ -25,13 +25,15 @@ import toast from 'react-hot-toast';
 import { buildVisitText, downloadTextFile, openMap, openWhatsApp } from '../utils/actions';
 import { v4 as uuidv4 } from 'uuid';
 
+const MEDIDORES = ['Marquinhos', 'Miguel', 'Maicon', 'Claiton', 'HÃ©rcules'];
+
 export const Visitas: React.FC = () => {
   const { visits, measurementSheets, saveMeasurementSheet } = useStore();
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [measurementSheet, setMeasurementSheet] = useState<MeasurementSheet | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const pendingVisits = visits.filter(v => v.status === 'agendada');
+  const pendingVisits = visits.filter((v) => v.status === 'agendada');
 
   useEffect(() => {
     if (!selectedVisit) {
@@ -40,40 +42,51 @@ export const Visitas: React.FC = () => {
     }
 
     const saved = measurementSheets.find((sheet) => sheet.visitId === selectedVisit.id);
-    setMeasurementSheet(saved || {
-      id: uuidv4(),
-      visitId: selectedVisit.id,
-      leadId: selectedVisit.leadId,
-      leadName: selectedVisit.leadName,
-      service: selectedVisit.service,
-      lines: [
-        { id: uuidv4(), location: 'Ambiente 1', width: '', height: '', depth: '', quantity: 1, notes: '' },
-        { id: uuidv4(), location: 'Ambiente 2', width: '', height: '', depth: '', quantity: 1, notes: '' },
-      ],
-      generalNotes: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    setMeasurementSheet(
+      saved || {
+        id: uuidv4(),
+        visitId: selectedVisit.id,
+        leadId: selectedVisit.leadId,
+        leadName: selectedVisit.leadName,
+        service: selectedVisit.service,
+        medidor: '',
+        lines: [
+          { id: uuidv4(), location: 'Ambiente 1', width: '', height: '', depth: '', quantity: 1, notes: '' },
+          { id: uuidv4(), location: 'Ambiente 2', width: '', height: '', depth: '', quantity: 1, notes: '' },
+        ],
+        generalNotes: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    );
   }, [measurementSheets, selectedVisit]);
 
   const updateMeasurementLine = (lineId: string, field: string, value: string | number) => {
     if (!measurementSheet) return;
-
     setMeasurementSheet({
       ...measurementSheet,
-      lines: measurementSheet.lines.map((line) => line.id === lineId ? { ...line, [field]: value } : line),
+      lines: measurementSheet.lines.map((line) =>
+        line.id === lineId ? { ...line, [field]: value } : line
+      ),
       updatedAt: new Date(),
     });
   };
 
   const addMeasurementLine = () => {
     if (!measurementSheet) return;
-
     setMeasurementSheet({
       ...measurementSheet,
       lines: [
         ...measurementSheet.lines,
-        { id: uuidv4(), location: `Ambiente ${measurementSheet.lines.length + 1}`, width: '', height: '', depth: '', quantity: 1, notes: '' },
+        {
+          id: uuidv4(),
+          location: `Ambiente ${measurementSheet.lines.length + 1}`,
+          width: '',
+          height: '',
+          depth: '',
+          quantity: 1,
+          notes: '',
+        },
       ],
       updatedAt: new Date(),
     });
@@ -82,7 +95,7 @@ export const Visitas: React.FC = () => {
   const saveMeasurements = () => {
     if (!measurementSheet) return;
     saveMeasurementSheet({ ...measurementSheet, updatedAt: new Date() });
-    toast.success('Folha de medições salva');
+    toast.success('Folha de mediÃ§Ãµes salva');
   };
 
   const handlePrint = () => {
@@ -93,13 +106,13 @@ export const Visitas: React.FC = () => {
   const handleWhatsApp = () => {
     if (!selectedVisit) return;
     const ok = openWhatsApp(selectedVisit.phone, buildVisitText(selectedVisit));
-    if (!ok) toast.error('Telefone inválido para WhatsApp');
+    if (!ok) toast.error('Telefone invÃ¡lido para WhatsApp');
   };
 
   const handleOpenMap = () => {
     if (!selectedVisit) return;
     const ok = openMap(selectedVisit.address);
-    if (!ok) toast.error('Endereço não informado');
+    if (!ok) toast.error('EndereÃ§o nÃ£o informado');
   };
 
   const handleDownload = () => {
@@ -108,13 +121,19 @@ export const Visitas: React.FC = () => {
       ? [
           '',
           'MEDICOES',
-          ...measurementSheet.lines.map((line) =>
-            `${line.location}: L ${line.width || '-'} x A ${line.height || '-'} x P ${line.depth || '-'} | Qtd ${line.quantity} | ${line.notes || ''}`
+          ...measurementSheet.lines.map(
+            (line) =>
+              `${line.location}: L ${line.width || '-'} x A ${line.height || '-'} x P ${line.depth || '-'} | Qtd ${line.quantity} | ${line.notes || ''}`
           ),
           measurementSheet.generalNotes ? `Observacoes gerais: ${measurementSheet.generalNotes}` : '',
-        ].filter(Boolean).join('\n')
+        ]
+          .filter(Boolean)
+          .join('\n')
       : '';
-    downloadTextFile(`ficha-visita-${selectedVisit.id.slice(0, 8)}.txt`, `${buildVisitText(selectedVisit)}${measurements}`);
+    downloadTextFile(
+      `ficha-visita-${selectedVisit.id.slice(0, 8)}.txt`,
+      `${buildVisitText(selectedVisit)}${measurements}`
+    );
     toast.success('Ficha de visita baixada');
   };
 
@@ -123,12 +142,12 @@ export const Visitas: React.FC = () => {
       {/* Visits List */}
       <div className="space-y-4">
         <Card>
-          <CardHeader 
+          <CardHeader
             title="Fichas de Visita"
             subtitle={`${pendingVisits.length} visitas pendentes`}
             icon={<FileText size={20} />}
           />
-          
+
           <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
             {pendingVisits.length === 0 ? (
               <div className="text-center py-10 text-gray-500">
@@ -158,9 +177,7 @@ export const Visitas: React.FC = () => {
                         <p className="text-sm text-gray-600">{visit.service}</p>
                       </div>
                     </div>
-                    <Badge variant="info">
-                      {format(new Date(visit.date), 'dd/MM')}
-                    </Badge>
+                    <Badge variant="info">{format(new Date(visit.date), 'dd/MM')}</Badge>
                   </div>
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-3">
                     <span className="flex items-center gap-1">
@@ -204,7 +221,7 @@ export const Visitas: React.FC = () => {
             {measurementSheet && (
               <Card>
                 <CardHeader
-                  title="Folha de Medições"
+                  title="Folha de MediÃ§Ãµes"
                   subtitle="Preencha no local da visita e salve no sistema"
                   icon={<FileText size={20} />}
                   action={
@@ -218,35 +235,58 @@ export const Visitas: React.FC = () => {
                     </div>
                   }
                 />
+
+                {/* Medidor */}
+                <div className="mb-4">
+                  <Select
+                    label="Medidor"
+                    value={(measurementSheet as any).medidor || ''}
+                    onChange={(e) =>
+                      setMeasurementSheet({
+                        ...measurementSheet,
+                        medidor: e.target.value,
+                        updatedAt: new Date(),
+                      } as any)
+                    }
+                    options={[
+                      { value: '', label: 'Selecione o medidor' },
+                      ...MEDIDORES.map((m) => ({ value: m, label: m })),
+                    ]}
+                  />
+                </div>
+
                 <div className="space-y-3">
                   {measurementSheet.lines.map((line) => (
-                    <div key={line.id} className="grid grid-cols-12 gap-2 rounded-lg border border-gray-200 p-3">
+                    <div
+                      key={line.id}
+                      className="grid grid-cols-12 gap-2 rounded-lg border border-gray-200 p-3"
+                    >
                       <div className="col-span-12 sm:col-span-3">
                         <Input
-                          placeholder="Ambiente / peça"
+                          placeholder="Ambiente / peÃ§a"
                           value={line.location}
-                          onChange={(event) => updateMeasurementLine(line.id, 'location', event.target.value)}
+                          onChange={(e) => updateMeasurementLine(line.id, 'location', e.target.value)}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-2">
                         <Input
                           placeholder="Largura"
                           value={line.width}
-                          onChange={(event) => updateMeasurementLine(line.id, 'width', event.target.value)}
+                          onChange={(e) => updateMeasurementLine(line.id, 'width', e.target.value)}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-2">
                         <Input
                           placeholder="Altura"
                           value={line.height}
-                          onChange={(event) => updateMeasurementLine(line.id, 'height', event.target.value)}
+                          onChange={(e) => updateMeasurementLine(line.id, 'height', e.target.value)}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-2">
                         <Input
                           placeholder="Prof."
                           value={line.depth}
-                          onChange={(event) => updateMeasurementLine(line.id, 'depth', event.target.value)}
+                          onChange={(e) => updateMeasurementLine(line.id, 'depth', e.target.value)}
                         />
                       </div>
                       <div className="col-span-4 sm:col-span-1">
@@ -254,26 +294,30 @@ export const Visitas: React.FC = () => {
                           type="number"
                           min={1}
                           value={line.quantity}
-                          onChange={(event) => updateMeasurementLine(line.id, 'quantity', Number(event.target.value))}
+                          onChange={(e) =>
+                            updateMeasurementLine(line.id, 'quantity', Number(e.target.value))
+                          }
                         />
                       </div>
                       <div className="col-span-8 sm:col-span-2">
                         <Input
                           placeholder="Obs."
                           value={line.notes}
-                          onChange={(event) => updateMeasurementLine(line.id, 'notes', event.target.value)}
+                          onChange={(e) => updateMeasurementLine(line.id, 'notes', e.target.value)}
                         />
                       </div>
                     </div>
                   ))}
                   <TextArea
-                    label="Observações gerais"
+                    label="ObservaÃ§Ãµes gerais"
                     value={measurementSheet.generalNotes}
-                    onChange={(event) => setMeasurementSheet({
-                      ...measurementSheet,
-                      generalNotes: event.target.value,
-                      updatedAt: new Date(),
-                    })}
+                    onChange={(e) =>
+                      setMeasurementSheet({
+                        ...measurementSheet,
+                        generalNotes: e.target.value,
+                        updatedAt: new Date(),
+                      })
+                    }
                     rows={3}
                   />
                 </div>
@@ -291,12 +335,12 @@ export const Visitas: React.FC = () => {
                     </div>
                     <div>
                       <h1 className="text-xl font-bold text-gray-900">Marquinhos OS</h1>
-                      <p className="text-sm text-gray-500">Esquadrias • Alumínio • Vidros • Calhas</p>
+                      <p className="text-sm text-gray-500">Esquadrias â¢ AlumÃ­nio â¢ Vidros â¢ Calhas</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <h2 className="text-lg font-bold text-red-600">FICHA DE VISITA</h2>
-                    <p className="text-sm text-gray-500">Nº {selectedVisit.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-sm text-gray-500">NÂº {selectedVisit.id.slice(0, 8).toUpperCase()}</p>
                   </div>
                 </div>
 
@@ -324,7 +368,7 @@ export const Visitas: React.FC = () => {
                   <div className="bg-red-50 rounded-lg p-4">
                     <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <FileText size={18} />
-                      SERVIÇO SOLICITADO
+                      SERVIÃO SOLICITADO
                     </h3>
                     <p className="text-lg font-medium text-red-900">{selectedVisit.service}</p>
                   </div>
@@ -333,46 +377,49 @@ export const Visitas: React.FC = () => {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <MapPin size={18} />
-                      ENDEREÇO
+                      ENDEREÃO
                     </h3>
                     <p className="text-lg">{selectedVisit.address}</p>
                   </div>
 
-                  {/* Date/Time Section */}
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Date/Time + Medidor */}
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="bg-red-50 rounded-lg p-4 text-center">
                       <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2">
                         <Calendar size={18} />
                         DATA
                       </h3>
-                      <p className="text-2xl font-bold text-red-700">
+                      <p className="text-xl font-bold text-red-700">
                         {format(new Date(selectedVisit.date), 'dd/MM/yyyy', { locale: ptBR })}
                       </p>
                     </div>
                     <div className="bg-red-50 rounded-lg p-4 text-center">
                       <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2">
                         <Clock size={18} />
-                        HORÁRIO
+                        HORÃRIO
                       </h3>
-                      <p className="text-2xl font-bold text-red-700">{selectedVisit.time}</p>
+                      <p className="text-xl font-bold text-red-700">{selectedVisit.time}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4 text-center">
+                      <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-2">
+                        <User size={18} />
+                        MEDIDOR
+                      </h3>
+                      <p className="text-xl font-bold text-gray-800">
+                        {(measurementSheet as any)?.medidor || 'â'}
+                      </p>
                     </div>
                   </div>
 
                   {/* Observations */}
                   {selectedVisit.observations && (
                     <div className="bg-red-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-700 mb-2">OBSERVAÇÕES</h3>
+                      <h3 className="font-semibold text-gray-700 mb-2">OBSERVAÃÃES</h3>
                       <p className="text-gray-700">{selectedVisit.observations}</p>
                     </div>
                   )}
 
-                  {/* Notes Section (for printing) */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-700 mb-2">ANOTAÇÕES DA VISITA</h3>
-                    <div className="h-32 print:h-48"></div>
-                  </div>
-
-                  {/* Measurements Section (for printing) */}
+                  {/* Measurements Section */}
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                     <h3 className="font-semibold text-gray-700 mb-2">MEDIDAS</h3>
                     <table className="w-full text-sm">
@@ -404,13 +451,19 @@ export const Visitas: React.FC = () => {
                     )}
                   </div>
 
+                  {/* EspaÃ§o em branco extra para anotaÃ§Ãµes manuais */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">ANOTAÃÃES DA VISITA</h3>
+                    <div className="h-40 print:h-64"></div>
+                  </div>
+
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200 text-sm text-gray-500">
                     <div className="flex items-center gap-2">
                       <CheckCircle size={16} className="text-red-500" />
                       <span>Gerado automaticamente por Marquinhos OS</span>
                     </div>
-                    <span>{format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                    <span>{format(new Date(), "dd/MM/yyyy 'Ã s' HH:mm", { locale: ptBR })}</span>
                   </div>
                 </div>
               </Card>
@@ -421,7 +474,7 @@ export const Visitas: React.FC = () => {
             <FileText size={64} className="text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-700 mb-2">Selecione uma Visita</h3>
             <p className="text-gray-500 text-center">
-              Clique em uma visita à esquerda para visualizar e imprimir a ficha
+              Clique em uma visita Ã  esquerda para visualizar e imprimir a ficha
             </p>
           </Card>
         )}
