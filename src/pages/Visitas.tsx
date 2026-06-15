@@ -451,7 +451,7 @@ export const Visitas: React.FC = () => {
                     )}
                   </div>
 
-                  {/* EspaÃ§o em branco extra para anotaÃ§Ãµes manuais */}
+                  {/* Espaço em branco extra para anotações manuais */}
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                     <h3 className="font-semibold text-gray-700 mb-2">ANOTAÃÃES DA VISITA</h3>
                     <div className="h-40 print:h-64"></div>
@@ -463,7 +463,7 @@ export const Visitas: React.FC = () => {
                       <CheckCircle size={16} className="text-red-500" />
                       <span>Gerado automaticamente por Marquinhos OS</span>
                     </div>
-                    <span>{format(new Date(), "dd/MM/yyyy 'Ã s' HH:mm", { locale: ptBR })}</span>
+                    <span>{format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                   </div>
                 </div>
               </Card>
@@ -474,7 +474,7 @@ export const Visitas: React.FC = () => {
             <FileText size={64} className="text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-700 mb-2">Selecione uma Visita</h3>
             <p className="text-gray-500 text-center">
-              Clique em uma visita Ã  esquerda para visualizar e imprimir a ficha
+              Clique em uma visita à esquerda para visualizar e imprimir a ficha
             </p>
           </Card>
         )}
@@ -482,7 +482,7 @@ export const Visitas: React.FC = () => {
 
       {/* Print Styles */}
       <style>{`
-        @media print {
+        @media print {h
           body * {
             visibility: hidden;
           }
